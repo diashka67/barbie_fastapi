@@ -1,5 +1,5 @@
 """python -m uvicorn file:app --reload"""
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -26,7 +26,7 @@ def home_page(request: Request):
 
 @app.get('/login', response_class=HTMLResponse)
 def login_page(request: Request):
-    return templates.TemplateResponse(request=request, name='login.html')
+    return templates.TemplateResponse(request=request, name ="login.html")
 
 
 @app.get('/register', response_class=HTMLResponse)
@@ -49,9 +49,16 @@ def oshibka_page(request: Request):
     return templates.TemplateResponse(request=request, name='404.html')
 
 
-# Любой несуществующий адрес показывает красивую страницу 404
 @app.exception_handler(StarletteHTTPException)
 async def not_found_handler(request: Request, exc: StarletteHTTPException):
     if exc.status_code == 404:
         return templates.TemplateResponse(request=request, name='404.html', status_code=404)
     return await http_exception_handler(request, exc)
+
+
+@app.post("/login")
+def login(request: Request, 
+          username: str = Form(...),  
+          password: str = Form(...)):
+    print(f"username={username}, password={password}")
+    #return RedirectResponse(url="/main", status_code=303)
