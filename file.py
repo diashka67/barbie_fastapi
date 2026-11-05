@@ -14,19 +14,26 @@ templates = Jinja2Templates(directory='templates')
 white_urls = ['/', '/home', '/login', '/logout', '/register', '/main', '/404']
 
 
+def current_name(request: Request) -> str:
+    """Имя вошедшего пользователя из cookie (или «красотка», если не входил)."""
+    return request.cookies.get('username') or 'красотка'
+
+
 @app.get('/', response_class=HTMLResponse)
 def main_page(request: Request):
-    return templates.TemplateResponse(request=request, name='home.html')
+    return templates.TemplateResponse(
+        request=request, name='home.html', context={'username': current_name(request)})
 
 
 @app.get('/home', response_class=HTMLResponse)
 def home_page(request: Request):
-    return templates.TemplateResponse(request=request, name='home.html')
+    return templates.TemplateResponse(
+        request=request, name='home.html', context={'username': current_name(request)})
 
 
 @app.get('/login', response_class=HTMLResponse)
 def login_page(request: Request):
-    return templates.TemplateResponse(request=request, name ="login.html")
+    return templates.TemplateResponse(request=request, name='login.html')
 
 
 @app.get('/register', response_class=HTMLResponse)
@@ -41,7 +48,9 @@ def cabinet_page(request: Request):
 
 @app.get('/logout')
 def logout():
-    return RedirectResponse(url='/login')
+    response = RedirectResponse(url='/login')
+    response.delete_cookie('username')
+    return response
 
 
 @app.get('/404', response_class=HTMLResponse)
@@ -56,9 +65,10 @@ async def not_found_handler(request: Request, exc: StarletteHTTPException):
     return await http_exception_handler(request, exc)
 
 
-@app.post("/login")
-def login(request: Request, 
-          username: str = Form(...),  
-          password: str = Form(...)):
-    print(f"username={username}, password={password}")
-    #return RedirectResponse(url="/main", status_code=303)
+@app.post('/login')
+def login(username: str = Form(...), password: str = Form(...)):
+    print(f'Вошёл пользователь: {username}, его пароль {password}', flush=True)
+
+    response = RedirectResponse(url='/main', status_code=303)
+    response.set_cookie('username', username.split('@')[0])  
+    return response
