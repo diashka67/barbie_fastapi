@@ -25,11 +25,7 @@ function isValidEmail(value) {
 }
 
 form.addEventListener('submit', function (e) {
-  e.preventDefault();
   formError.style.display = 'none';
-  formError.style.background = '#fef2f2';
-  formError.style.borderColor = '#fecaca';
-  formError.style.color = '#b91c1c';
 
   var email = emailInput.value.trim();
   var password = passwordInput.value;
@@ -55,23 +51,14 @@ form.addEventListener('submit', function (e) {
     setError(passwordInput, 'password-error', '');
   }
 
-  if (!ok) return;
+  // Ошибки в форме — остаёмся на странице и ничего не отправляем
+  if (!ok) {
+    e.preventDefault();
+    return;
+  }
 
-  // Имитация входа
+  // Всё верно: запоминаем имя для кабинета и отпускаем форму на сервер (POST /login)
+  localStorage.setItem('demo-user', email.split('@')[0]);
   submitBtn.disabled = true;
   submitBtn.textContent = 'Входим... ✨';
-
-  setTimeout(function () {
-    localStorage.setItem('demo-user', email.split('@')[0]);
-
-    formError.textContent = 'Вход выполнен! ✨ Сейчас перенаправим тебя в кабинет...';
-    formError.style.background = '#ffe0f0';
-    formError.style.borderColor = '#ff69b4';
-    formError.style.color = '#b8106f';
-    formError.style.display = 'block';
-
-    setTimeout(function () {
-      window.location.href = '/main';
-    }, 900);
-  }, 700);
 });
